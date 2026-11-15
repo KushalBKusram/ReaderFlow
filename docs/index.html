@@ -6,22 +6,26 @@
 <title>ReaderFlow: building a local-first podcast prototype</title>
 <meta name="description" content="A local-first prototype that turned a Raindrop reading queue into private two-host podcasts on a Mac, with encrypted nearby sync to a phone. What I built, what I verified, and what I found along the way.">
 <link rel="icon" href="assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700">
 <style>
 :root{--bg:#faf8f3;--fg:#1c1b19;--muted:#6a665e;--line:#e4e0d6;--accent:#c8432b;--card:#fff;--code:#f1eee6}
 @media (prefers-color-scheme:dark){:root{--bg:#161513;--fg:#ece8df;--muted:#a39d90;--line:#2c2a26;--accent:#ee7a5f;--card:#1e1c19;--code:#24211d}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font:18px/1.65 Georgia,"Iowan Old Style",serif}
+body{margin:0;background:var(--bg);color:var(--fg);font:300 18px/1.65 "Roboto",sans-serif}
 main{max-width:720px;margin:0 auto;padding:48px 20px 96px}
 header img{width:56px;height:56px;border-radius:12px}
-h1{font-size:2.1rem;line-height:1.2;margin:.6em 0 .2em}
-h2{font-size:1.4rem;margin:2.2em 0 .4em}
-h3{font-size:1.05rem;margin:1.6em 0 .2em;font-family:system-ui,sans-serif}
+h1{font-size:2.1rem;line-height:1.2;margin:.6em 0 .2em;font-weight:300}
+h2{font-size:1.5rem;margin:2.2em 0 .4em;font-weight:300}
+h3{font-size:1.1rem;margin:1.6em 0 .2em;font-weight:500}
 p,li{margin:.7em 0}
 a{color:var(--accent)}
-.meta,figcaption,.note{color:var(--muted);font:0.9rem/1.5 system-ui,sans-serif}
+.meta,figcaption,.note{color:var(--muted);font:400 0.9rem/1.5 "Roboto",sans-serif}
 .callout{border-left:4px solid var(--accent);background:var(--card);padding:.2em 1em;margin:1.4em 0;border-radius:0 8px 8px 0}
-table{border-collapse:collapse;width:100%;font:0.92rem/1.45 system-ui,sans-serif;margin:1em 0}
+table{border-collapse:collapse;width:100%;font:400 0.92rem/1.45 "Roboto",sans-serif;margin:1em 0}
 th,td{border-bottom:1px solid var(--line);padding:.55em .5em;text-align:left;vertical-align:top}
+strong{font-weight:500}
 code{background:var(--code);padding:.1em .35em;border-radius:4px;font-size:.88em}
 .shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;margin:1.4em 0}
 figure{margin:0}
