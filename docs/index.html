@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReaderFlow: building a local-first podcast prototype</title>
+<meta name="description" content="A local-first prototype that turned a Raindrop reading queue into private two-host podcasts on a Mac, with encrypted nearby sync to a phone. What I built, what I verified, and what I found along the way.">
+<link rel="icon" href="assets/logo.png">
+<style>
+:root{--bg:#faf8f3;--fg:#1c1b19;--muted:#6a665e;--line:#e4e0d6;--accent:#c8432b;--card:#fff;--code:#f1eee6}
+@media (prefers-color-scheme:dark){:root{--bg:#161513;--fg:#ece8df;--muted:#a39d90;--line:#2c2a26;--accent:#ee7a5f;--card:#1e1c19;--code:#24211d}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:18px/1.65 Georgia,"Iowan Old Style",serif}
+main{max-width:720px;margin:0 auto;padding:48px 20px 96px}
+header img{width:56px;height:56px;border-radius:12px}
+h1{font-size:2.1rem;line-height:1.2;margin:.6em 0 .2em}
+h2{font-size:1.4rem;margin:2.2em 0 .4em}
+h3{font-size:1.05rem;margin:1.6em 0 .2em;font-family:system-ui,sans-serif}
+p,li{margin:.7em 0}
+a{color:var(--accent)}
+.meta,figcaption,.note{color:var(--muted);font:0.9rem/1.5 system-ui,sans-serif}
+.callout{border-left:4px solid var(--accent);background:var(--card);padding:.2em 1em;margin:1.4em 0;border-radius:0 8px 8px 0}
+table{border-collapse:collapse;width:100%;font:0.92rem/1.45 system-ui,sans-serif;margin:1em 0}
+th,td{border-bottom:1px solid var(--line);padding:.55em .5em;text-align:left;vertical-align:top}
+code{background:var(--code);padding:.1em .35em;border-radius:4px;font-size:.88em}
+.shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;margin:1.4em 0}
+figure{margin:0}
+figure img{width:100%;border-radius:16px;border:1px solid var(--line);display:block}
+figcaption{margin-top:.5em}
+footer{margin-top:3em;border-top:1px solid var(--line);padding-top:1em}
+</style>
+</head>
+<body>
+<main>
+<header>
+<img src="assets/logo.png" alt="ReaderFlow logo">
+<h1>ReaderFlow: building a local-first podcast prototype</h1>
+<p class="meta">Kushal Kusram &middot; November 14, 2026 &middot; <a href="https://github.com/KushalBKusram/ReaderFlow">source on GitHub</a></p>
+</header>
+
+<p>ReaderFlow was an attempt to turn the articles I save in <a href="https://raindrop.io">Raindrop</a> into short, two-host podcast episodes, generated entirely on my own computer and copied to my phone over Wi-Fi. No cloud model, no API keys, no server. This is the write-up of the finished prototype: what I built, what I verified, and what I found along the way.</p>
+
+<div class="callout"><p><strong>Outcome: a finished prototype.</strong> The Mac app generates episodes fully locally, the Raindrop sign-in works end to end, and the encrypted, resumable phone transfer is built and tested. The phone side was verified in the iOS Simulator rather than on a physical phone, and the OAuth relay is a design rather than a deployment. That is the scope this prototype was built to, and it is complete.</p></div>
+
+<h2>The idea</h2>
+<p>A normal Raindrop user should be able to install a desktop app, connect Raindrop in the browser, let a local model write a conversational script from a saved article, hear it narrated by two distinct voices, and later listen offline on a phone. The product rules I wrote on day one were strict: nothing leaves the machine except the OAuth handshake and the original article fetch; no user ever pastes an API key; syncing to the phone is explicit, encrypted and resumable.</p>
+<p>I split the unknowns into three feasibility questions: <strong>local generation quality</strong>, <strong>nearby sync reliability</strong>, and <strong>Raindrop OAuth</strong>. The prototype answers each of them at the scope described below.</p>
+
+<h2>What I built</h2>
+<p>A native macOS app in SwiftUI. It extracts readable text from a public URL, asks a local <strong>Qwen3</strong> model (via MLX) for a two-host script with a revision pass, then renders it with <strong>Kokoro</strong> voices into an episode library with resume, seek, speed control and per-episode script view. It was iterated through real use:</p>
+<ul>
+<li>Long sources (a 49-page paper) are summarized section by section instead of silently truncated.</li>
+<li>The two hosts carry a persistent persona that changes by at most one small detail per episode.</li>
+<li>Checks catch a "dialogue" that is really one host monologuing, and fix contractions Kokoro mispronounced (&ldquo;won't&rdquo;, &ldquo;I'm&rdquo;, &ldquo;it's&rdquo;).</li>
+<li>Finished audio is compressed to AAC (about 11.5&times; smaller); the Qwen model's GPU memory is released after a minute idle.</li>
+<li>A real concurrency bug: two processes rewriting the episode index could silently drop each other's writes, fixed with file coordination and verified with a two-process race.</li>
+</ul>
+<p>It is packaged as an ad-hoc-signed build (v0.4.0, attached to the GitHub release; macOS will ask you to approve it on first launch). 26 unit tests cover the text rules and the episode library.</p>
+
+<h2>What I verified</h2>
+<table>
+<tr><th>Question</th><th>Result</th></tr>
+<tr><td><strong>Local generation</strong> (Mac)</td><td><strong>Works.</strong> End to end on a laptop. CPU rendering beat the GPU (MPS) path on real dialogue, so CPU is the default. An earlier Piper-based plan was superseded. Mac only; Windows was not part of the prototype.</td></tr>
+<tr><td><strong>Raindrop OAuth</strong></td><td><strong>Works for a single owner.</strong> Browser authorization, token exchange, Keychain storage, collection listing and persistence across relaunch all ran against a real registered app. Token refresh after expiry (about two weeks) was not exercised.</td></tr>
+<tr><td><strong>Nearby Sync</strong></td><td><strong>Works in the Simulator.</strong> Pairing, encryption, resume and revoke verified between the Mac and an iPhone receiver in the iOS 27.2 Simulator. Physical devices, Android and Windows were not part of the prototype.</td></tr>
+</table>
+
+<h2>The OAuth surprise</h2>
+<p>I had assumed a desktop app could do OAuth with a public client. Raindrop's token endpoint requires a <code>client_secret</code> for both the code exchange and the refresh, and documents no PKCE alternative. A secret inside a distributed app is not a secret, so the honest design needs a small relay that holds it. I wrote one (about 70 lines, a Cloudflare Worker that proxies only those two calls and stores nothing) as the design for distributed builds; it is not deployed. For my own use I added a <em>personal mode</em> that keeps my own secret in the Keychain, and that is what signed in.</p>
+
+<h2>Testing sync without a second computer</h2>
+<p>I had one Mac and one iPhone, and the phone-side receiver didn't exist yet. So I built it, then tested it in the iOS 27.2 Simulator against the Mac, with a small proxy in the path to throttle the link and cut it at chosen points. The protocol: a QR code that expires in two minutes, a key agreed from both devices and approved on both, every chunk (1 MiB, so 250 for a 250 MiB file) encrypted and verified before it is written, a ledger saved after each chunk, and a whole-file SHA-256 check before the file becomes visible.</p>
+
+<div class="shots">
+<figure><img src="assets/sync-approve-sender.png" alt="Approval screen showing the sender address the QR points at"><figcaption>The phone shows exactly where the QR points and waits for an explicit approval. The Mac asks for its own approval in the terminal.</figcaption></figure>
+<figure><img src="assets/sync-camera-denied.png" alt="Scanner screen after camera access was denied, asking to paste the QR text"><figcaption>No camera in the Simulator: the app falls back to pasting the QR text instead of failing.</figcaption></figure>
+</div>
+
+<h3>What happened under stress</h3>
+<ul>
+<li><strong>Clean transfer:</strong> 250 MiB passed the in-app check, and I confirmed the Mac and phone SHA-256 matched and no partial file was left behind.</li>
+<li><strong>Two forced outages</strong> at about 25% and 64%: the phone showed 61 and then 161 of 250 chunks saved, and each retry resumed from that count instead of starting over. A retry made during an outage was refused and lost nothing.</li>
+<li><strong>Force-quit plus a Simulator reboot</strong> at 57 chunks: the count survived, the resume finished, digests matched, and the half-finished file never appeared as a playable episode.</li>
+<li><strong>Revoke:</strong> the phone dropped the sender and the Mac refused to serve it, while already-verified files stayed.</li>
+</ul>
+
+<div class="shots">
+<figure><img src="assets/sync-outage-1-of-2.png" alt="Receive screen showing 61 of 250 chunks saved after the first outage"><figcaption>After outage one: 61 of 250 chunks saved.</figcaption></figure>
+<figure><img src="assets/sync-outage-2-of-2.png" alt="Receive screen showing 161 of 250 chunks saved after the second outage"><figcaption>After outage two: 161 of 250. It resumed from 61, not from zero.</figcaption></figure>
+<figure><img src="assets/sync-resume-after-quit.png" alt="Receive screen showing 57 of 250 chunks saved after relaunching the app"><figcaption>After a force-quit and relaunch: still 57 of 250, with an option to discard the partial.</figcaption></figure>
+<figure><img src="assets/sync-verified-files.png" alt="Receive screen showing a file that passed SHA-256 verification"><figcaption>A finished transfer passes verification before it is listed.</figcaption></figure>
+<figure><img src="assets/sync-after-revoke.png" alt="Sync screen after revoking the Mac, showing no sender but the received files kept"><figcaption>After revoke: no sender is listed, received files remain.</figcaption></figure>
+</div>
+<p class="note">This is simulator evidence, and it is labeled that way throughout. A Simulator shares the Mac's network, so it cannot show iOS's Local Network permission prompt, Wi-Fi client isolation, sleep behavior or real radio loss. It is not a physical-device result.</p>
+
+<h2>Things that cost more time than the idea</h2>
+<ul>
+<li>Xcode 27.2 stopped building the app: the MLX macro dependency pins an older <code>swift-syntax</code> than the compiler's prebuilt binary supports. Fix: turn off Xcode's prebuilt SwiftSyntax (<code>IDEPackageEnablePrebuilts NO</code>) and install the Metal toolchain.</li>
+<li>A build setting pinned to Swift 5 hid a real data-race error in my OAuth client that <code>swift test</code> (Swift 6) caught.</li>
+<li>Raindrop's app form silently refuses to save unless Description and Site are filled in.</li>
+<li>Driving a Simulator by script: screenshots lag the screen by a step, and taps fail while the layout is still animating.</li>
+</ul>
+
+<h2>Scope</h2>
+<p>The prototype covers the Mac generation pipeline, a Raindrop sign-in in single-user mode, and the encrypted, resumable transfer protocol with an iPhone receiver. Its boundaries: Mac only, sync verified in the Simulator, a relay design rather than a deployment, personal distribution, and no usage study. The experiment tooling, written results and technical notes in the repository back every claim on this page.</p>
+
+<h2>If you want to build on it</h2>
+<ul>
+<li>The generation pipeline (extraction, script, narration, library) is the most reusable part.</li>
+<li>The sync protocol notes and the Simulator rehearsal tools (<code>experiments/nearby-sync-native-prototype/tools/</code>) show how to test resume and outage behavior without a second device.</li>
+<li>There is no license file yet. Add one before reusing the code.</li>
+</ul>
+
+<footer class="meta">
+<p>Technical notes: <a href="https://github.com/KushalBKusram/ReaderFlow/blob/main/docs/findings.md">docs/findings.md</a> &middot; Sync design: <a href="https://github.com/KushalBKusram/ReaderFlow/blob/main/docs/nearby-sync-design.md">docs/nearby-sync-design.md</a> &middot; Final snapshot: tag <code>prototype-final-2026-11-14</code>.</p>
+</footer>
+</main>
+</body>
+</html>
