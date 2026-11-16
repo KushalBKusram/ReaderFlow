@@ -8,22 +8,24 @@
 <link rel="icon" href="assets/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:300,400,500">
+<link rel="stylesheet" href="https://kushalbkusram.github.io/assets/css/project-theme.css">
+<script src="https://kushalbkusram.github.io/assets/js/project-theme.js"></script>
 <style>
-:root{--bg:#faf8f3;--fg:#1c1b19;--muted:#6a665e;--line:#e4e0d6;--accent:#c8432b;--card:#fff;--code:#f1eee6}
-@media (prefers-color-scheme:dark){:root{--bg:#161513;--fg:#ece8df;--muted:#a39d90;--line:#2c2a26;--accent:#ee7a5f;--card:#1e1c19;--code:#24211d}}
+:root{--bg:var(--g-bg);--fg:var(--g-fg);--muted:var(--g-muted);--line:var(--g-line);--accent:var(--g-accent);--card:var(--g-card);--code:var(--g-code)}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font:300 18px/1.65 "Roboto",sans-serif}
+body{margin:0;background:var(--bg);color:var(--fg);font:300 18px/1.65 var(--g-font)}
 main{max-width:720px;margin:0 auto;padding:48px 20px 96px}
 header img{width:56px;height:56px;border-radius:12px}
+h1,h2,h3{font-family:var(--g-font-head)}
 h1{font-size:2.1rem;line-height:1.2;margin:.6em 0 .2em;font-weight:300}
 h2{font-size:1.5rem;margin:2.2em 0 .4em;font-weight:300}
 h3{font-size:1.1rem;margin:1.6em 0 .2em;font-weight:500}
 p,li{margin:.7em 0}
 a{color:var(--accent)}
-.meta,figcaption,.note{color:var(--muted);font:400 0.9rem/1.5 "Roboto",sans-serif}
+.meta,figcaption,.note{color:var(--muted);font:400 0.9rem/1.5 var(--g-font)}
 .callout{border-left:4px solid var(--accent);background:var(--card);padding:.2em 1em;margin:1.4em 0;border-radius:0 8px 8px 0}
-table{border-collapse:collapse;width:100%;font:400 0.92rem/1.45 "Roboto",sans-serif;margin:1em 0}
+table{border-collapse:collapse;width:100%;font:400 0.92rem/1.45 var(--g-font);margin:1em 0}
 th,td{border-bottom:1px solid var(--line);padding:.55em .5em;text-align:left;vertical-align:top}
 strong{font-weight:500}
 code{background:var(--code);padding:.1em .35em;border-radius:4px;font-size:.88em}
@@ -35,8 +37,15 @@ footer{margin-top:3em;border-top:1px solid var(--line);padding-top:1em}
 </style>
 </head>
 <body>
+<div class="site-bar"><div class="site-bar__in">
+  <a class="site-bar__home" href="https://kushalbkusram.github.io/">&larr; Kushal Kusram</a>
+  <a class="site-bar__crumb" href="https://kushalbkusram.github.io/projects/">projects</a>
+  <span class="site-bar__title">ReaderFlow</span>
+  <span class="site-bar__spacer"></span>
+  <a href="https://github.com/KushalBKusram/ReaderFlow">GitHub</a>
+  <button class="site-bar__theme" type="button" aria-label="Toggle dark mode"></button>
+</div></div>
 <main>
-<p class="meta"><a href="https://kushalbkusram.github.io/">&larr; Kushal Kusram</a> &middot; <a href="https://kushalbkusram.github.io/projects/">all projects</a></p>
 <header>
 <img src="assets/logo.png" alt="ReaderFlow logo">
 <h1>ReaderFlow: building a local-first podcast prototype</h1>
@@ -120,5 +129,9 @@ footer{margin-top:3em;border-top:1px solid var(--line);padding-top:1em}
 <p>Technical notes: <a href="https://github.com/KushalBKusram/ReaderFlow/blob/main/docs/findings.md">docs/findings.md</a> &middot; Sync design: <a href="https://github.com/KushalBKusram/ReaderFlow/blob/main/docs/nearby-sync-design.md">docs/nearby-sync-design.md</a> &middot; Final snapshot: tag <code>prototype-final-2026-11-14</code>.</p>
 </footer>
 </main>
+<footer class="site-foot"><div class="wrapin">
+  <a href="https://kushalbkusram.github.io/">&larr; Back to kushalbkusram.github.io</a> &middot; <a href="https://kushalbkusram.github.io/projects/">All projects</a> &middot; <a href="https://github.com/KushalBKusram/ReaderFlow">Source on GitHub</a>
+</div></footer>
+
 </body>
 </html>
